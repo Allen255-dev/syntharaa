@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#090c14" />
+<title>Synthara — multi-model AI chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ================= AUTH SCREEN ================= -->
+<div class="auth-screen" id="authScreen" hidden>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="auth-card">
+    <div class="brand auth-brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Synthara</span>
+    </div>
+    <p class="auth-tagline">Fused Intelligence Platform</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" data-auth-tab="login">Log in</button>
+      <button class="auth-tab-btn" data-auth-tab="signup">Sign up</button>
+    </div>
+
+    <p class="auth-error" id="authError" hidden></p>
+
+    <form class="auth-form active" id="loginForm" data-auth-panel="login">
+      <label>Email
+        <input type="email" id="loginEmail" required autocomplete="email" />
+      </label>
+      <label>Password
+        <input type="password" id="loginPassword" required autocomplete="current-password" />
+      </label>
+      <button type="submit" class="auth-submit-btn">Log in</button>
+    </form>
+
+    <form class="auth-form" id="signupForm" data-auth-panel="signup">
+      <label>Name
+        <input type="text" id="signupName" maxlength="40" autocomplete="name" placeholder="Optional" />
+      </label>
+      <label>Email
+        <input type="email" id="signupEmail" required autocomplete="email" />
+      </label>
+      <label>Password
+        <input type="password" id="signupPassword" required minlength="8" autocomplete="new-password" />
+      </label>
+      <p class="auth-hint">At least 8 characters.</p>
+      <button type="submit" class="auth-submit-btn">Create account</button>
+    </form>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
+
+  <!-- Mobile drawer backdrop -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">Synthara</span>
+      </div>
+    </div>
+
+    <button class="new-chat-btn" id="newChatBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      New chat
+    </button>
+
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Search threads…" />
+    </div>
+
+    <div class="thread-list" id="threadList"></div>
+
+    <div class="sidebar-bottom">
+      <button class="user-row" id="settingsBtn">
+        <span class="avatar">A</span>
+        <span class="user-meta">
+          <span class="user-name" id="userName">Allen</span>
+          <span class="user-plan">Preferences</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 13a1.7 1.7 0 00.3 1.9l.06.07a2 2 0 11-2.9 2.9l-.07-.06a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V19.5a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.07.06a2 2 0 11-2.9-2.9l.06-.07a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H4.5a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.06-.07a2 2 0 112.9-2.9l.07.06a1.7 1.7 0 001.9.3H10.5a1.7 1.7 0 001-1.6V4.5a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.07-.06a2 2 0 112.9 2.9l-.06.07a1.7 1.7 0 00-.3 1.9V10.5a1.7 1.7 0 001.6 1H19.5a2 2 0 110 4h-.1a1.7 1.7 0 00-1.6 1z" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="icon-btn" id="sidebarToggleBtn" title="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="model-picker" id="modelPicker">
+        <button class="model-picker-btn" id="modelPickerBtn">
+          <span class="model-dot" id="modelDot"></span>
+          <span id="modelPickerLabel">Choose a model</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="model-menu" id="modelMenu"></div>
+      </div>
+
+      <button class="icon-btn topbar-share-btn" id="shareChatBtn" title="Share this chat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M8.6 10.5L15.4 6.5M8.6 13.5l6.8 4" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+    </header>
+
+    <div class="share-banner" id="shareBanner" hidden>
+      <span>👀 You're viewing a shared, read-only conversation.</span>
+      <a href="/">Start your own chat →</a>
+    </div>
+
+
+    <!-- Hero / empty state -->
+    <section class="hero" id="hero">
+      <div class="aurora" aria-hidden="true"></div>
+      <h1>How can I help you, <span id="heroName">Allen</span>?</h1>
+      <p>Send a message to get started — pick any model above.</p>
+    </section>
+
+    <!-- Message stream -->
+    <section class="messages" id="messages"></section>
+
+    <!-- Composer -->
+    <div class="composer-wrap">
+      <div class="aurora aurora-small" aria-hidden="true"></div>
+
+      <div class="attachment-strip" id="attachmentStrip"></div>
+
+      <form class="composer" id="composerForm">
+        <button type="button" class="attach-btn" id="attachBtn" title="Attach file">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <input type="file" id="fileInput" hidden multiple accept=".txt,.md,.csv,.json,.js,.ts,.jsx,.tsx,.py,.html,.css,.yaml,.yml,.log,.pdf,image/png,image/jpeg,image/webp,image/gif" />
+        <textarea id="composerInput" placeholder="Message Synthara…" rows="1"></textarea>
+        <button type="submit" class="send-btn" id="sendBtn" title="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+      <p class="composer-hint">Synthara can make mistakes. Check important info.</p>
+    </div>
+  </main>
+</div>
+
+<!-- ================= SETTINGS MODAL ================= -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="icon-btn" id="closeSettingsBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <nav class="modal-nav">
+        <button class="modal-nav-btn active" data-tab="general">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 13a1.7 1.7 0 00.3 1.9M4.6 13a1.7 1.7 0 01-.3 1.9M12 4.5a1.7 1.7 0 001-1.5m0 18a1.7 1.7 0 00-1-1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          General
+        </button>
+        <button class="modal-nav-btn" data-tab="profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Profile
+        </button>
+        <button class="modal-nav-btn" data-tab="data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.8"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.8"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.8"/></svg>
+          Data
+        </button>
+        <button class="modal-nav-btn" data-tab="about">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.5v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          About
+        </button>
+      </nav>
+
+      <div class="modal-panels">
+        <!-- General -->
+        <section class="modal-panel active" data-panel="general">
+          <div class="pref-section">
+            <h3>Theme</h3>
+            <div class="theme-options">
+              <button class="theme-opt" data-theme-choice="light">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Light
+              </button>
+              <button class="theme-opt" data-theme-choice="dark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 1110 3.8a7 7 0 0010 10.7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                Dark
+              </button>
+              <button class="theme-opt" data-theme-choice="system">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                System
+              </button>
+            </div>
+          </div>
+          <div class="pref-section">
+            <h3>Default model</h3>
+            <select id="defaultModelSelect" class="pref-select"></select>
+          </div>
+        </section>
+
+        <!-- Profile -->
+        <section class="modal-panel" data-panel="profile">
+          <div class="pref-section">
+            <h3>Display name</h3>
+            <input type="text" id="displayNameInput" class="pref-select" maxlength="40" placeholder="Your name" />
+            <p class="modal-sub">Used in your greeting and the sidebar.</p>
+          </div>
+          <div class="pref-section">
+            <h3>Email</h3>
+            <p class="account-email" id="accountEmail">—</p>
+          </div>
+          <div class="pref-section">
+            <h3>Sessions</h3>
+            <p class="modal-sub">Sign out of this browser, or everywhere you're currently signed in.</p>
+            <div class="pref-btn-row">
+              <button class="pref-btn" id="logoutBtn">Log out</button>
+              <button class="pref-btn" id="logoutAllBtn">Log out everywhere</button>
+            </div>
+          </div>
+          <div class="pref-section">
+            <h3>Delete account</h3>
+            <p class="modal-sub">Permanently deletes your account, all your chats, and every link you've shared. This can't be undone.</p>
+            <button class="danger-btn" id="deleteAccountBtn">Delete account</button>
+          </div>
+        </section>
+
+        <!-- Data -->
+        <section class="modal-panel" data-panel="data">
+          <div class="pref-section">
+            <h3>Available models</h3>
+            <p class="modal-sub">Configured by whoever is running this Synthara instance.</p>
+            <div id="providerStatusList" class="provider-status-list"></div>
+          </div>
+          <div class="pref-section">
+            <h3>Shared links</h3>
+            <p class="modal-sub">Chats you've published a read-only link for.</p>
+            <div id="sharedLinksList" class="shared-links-list"></div>
+          </div>
+          <div class="pref-section">
+            <h3>Export data</h3>
+            <p class="modal-sub">Download every chat in your account as a single JSON file.</p>
+            <button class="pref-btn" id="exportDataBtn">Export all chats</button>
+          </div>
+          <div class="pref-section">
+            <h3>Delete all chats</h3>
+            <button class="danger-btn" id="clearAllBtn">Delete all chats</button>
+          </div>
+        </section>
+
+        <!-- About -->
+        <section class="modal-panel" data-panel="about">
+          <div class="pref-section about-brand">
+            <span class="brand-mark about-mark"></span>
+            <h3>Synthara</h3>
+            <p class="modal-sub">Fused Intelligence Platform — a self-hosted, multi-model AI chat app.</p>
+          </div>
+          <div class="pref-section">
+            <p class="modal-sub">This instance is self-hosted; its operator is responsible for any terms of use or privacy policy. Synthara itself stores your chats only in this browser, and shared links on the server that hosts this page.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SHARE RESULT MODAL ================= -->
+<div class="modal-overlay" id="shareOverlay">
+  <div class="modal modal-narrow">
+    <div class="modal-header">
+      <h2>Share chat</h2>
+      <button class="icon-btn" id="closeShareBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p class="modal-sub" id="shareModalSub">Anyone with this link can view a read-only copy of this conversation.</p>
+    <div class="share-link-row">
+      <input type="text" id="shareLinkInput" class="pref-select" readonly />
+      <button class="pref-btn" id="copyShareLinkBtn">Copy</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
